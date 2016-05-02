@@ -63,5 +63,3 @@ target/
 
 #IntelliJ
 .idea/
-
-*.iml
