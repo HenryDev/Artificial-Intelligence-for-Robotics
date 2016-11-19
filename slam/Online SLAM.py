@@ -563,7 +563,12 @@ def online_slam(data, N, num_landmarks, motion_noise, measurement_noise):
     xi = matrix()
     grid_size = 2 * num_landmarks + 2
     omega.zero(grid_size, grid_size)
+    omega.value[0][0] = 1
+    omega.value[1][1] = 1
+
     xi.zero(grid_size, 1)
+    xi.value[0][0] = world_size / 2
+    xi.value[1][0] = world_size / 2
 
     landmark_list = [0, 1]
     for i in range(num_landmarks * 2):
@@ -576,19 +581,20 @@ def online_slam(data, N, num_landmarks, motion_noise, measurement_noise):
     for data_row in data:
         observations = data_row[0]
         motion = data_row[1]
-        omega = omega.expand(grid_size + 2, grid_size + 2, landmark_list, landmark_list)
-        xi = xi.expand(grid_size + 2, 1, landmark_list, [0])
 
         for observation in observations:
             landmark_number = observation[0]
-            landmark_index = landmark_number * 2 + 4
+            landmark_index = landmark_number * 2 + 2
             for i in range(2):
                 xi.value[landmark_index + i][0] += observation[1 + i] / measurement_noise
                 xi.value[i][0] += -observation[1 + i] / measurement_noise
                 omega.value[i][i] += 1 / measurement_noise
                 omega.value[landmark_index + i][landmark_index + i] += 1 / measurement_noise
-                omega.value[landmark_index + i][0] += -1 / measurement_noise
-                omega.value[0][landmark_index + i] += -1 / measurement_noise
+                omega.value[landmark_index + i][i] += -1 / measurement_noise
+                omega.value[i][landmark_index + i] += -1 / measurement_noise
+
+        omega = omega.expand(grid_size + 2, grid_size + 2, landmark_list, landmark_list)
+        xi = xi.expand(grid_size + 2, 1, landmark_list, [0])
 
         for i in range(4):
             omega.value[i][i] += 1 / motion_noise
@@ -724,14 +730,14 @@ answer_mu1 = matrix([[81.63549976607898],
                      [22.150809430682695]])
 
 answer_omega1 = matrix(
-        [[0.36603773584905663, 0.0, -0.169811320754717, 0.0, -0.011320754716981133, 0.0, -0.1811320754716981, 0.0],
-         [0.0, 0.36603773584905663, 0.0, -0.169811320754717, 0.0, -0.011320754716981133, 0.0, -0.1811320754716981],
-         [-0.169811320754717, 0.0, 0.6509433962264151, 0.0, -0.05660377358490567, 0.0, -0.40566037735849064, 0.0],
-         [0.0, -0.169811320754717, 0.0, 0.6509433962264151, 0.0, -0.05660377358490567, 0.0, -0.40566037735849064],
-         [-0.011320754716981133, 0.0, -0.05660377358490567, 0.0, 0.6962264150943396, 0.0, -0.360377358490566, 0.0],
-         [0.0, -0.011320754716981133, 0.0, -0.05660377358490567, 0.0, 0.6962264150943396, 0.0, -0.360377358490566],
-         [-0.1811320754716981, 0.0, -0.4056603773584906, 0.0, -0.360377358490566, 0.0, 1.2339622641509433, 0.0],
-         [0.0, -0.1811320754716981, 0.0, -0.4056603773584906, 0.0, -0.360377358490566, 0.0, 1.2339622641509433]])
+    [[0.36603773584905663, 0.0, -0.169811320754717, 0.0, -0.011320754716981133, 0.0, -0.1811320754716981, 0.0],
+     [0.0, 0.36603773584905663, 0.0, -0.169811320754717, 0.0, -0.011320754716981133, 0.0, -0.1811320754716981],
+     [-0.169811320754717, 0.0, 0.6509433962264151, 0.0, -0.05660377358490567, 0.0, -0.40566037735849064, 0.0],
+     [0.0, -0.169811320754717, 0.0, 0.6509433962264151, 0.0, -0.05660377358490567, 0.0, -0.40566037735849064],
+     [-0.011320754716981133, 0.0, -0.05660377358490567, 0.0, 0.6962264150943396, 0.0, -0.360377358490566, 0.0],
+     [0.0, -0.011320754716981133, 0.0, -0.05660377358490567, 0.0, 0.6962264150943396, 0.0, -0.360377358490566],
+     [-0.1811320754716981, 0.0, -0.4056603773584906, 0.0, -0.360377358490566, 0.0, 1.2339622641509433, 0.0],
+     [0.0, -0.1811320754716981, 0.0, -0.4056603773584906, 0.0, -0.360377358490566, 0.0, 1.2339622641509433]])
 
 # result = online_slam(testdata1, 5, 3, 2.0, 2.0)
 # solution_check(result, answer_mu1, answer_omega1)
